@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">URL Shortener</string>
+    <string name="url_shortener">URL Shortener</string>
+    <string name="shorten">Shorten</string>
+    <string name="url_placeholder">https://example.com</string>
+    <string name="recent_urls">Recent URLs</string>
+    <string name="clear">Clear</string>
+    <string name="no_shortened_urls_yet">No shortened URLs yet.</string>
+    <string name="dismiss_error">Dismiss error</string>
+    <string name="share_link">Share link</string>
+    <string name="shortened_url">Shortened URL</string>
+    <string name="url_copied_to_clipboard">Link copied to clipboard</string>
+    <string name="url_cannot_be_empty">URL cannot be empty.</string>
+    <string name="please_enter_a_valid_url">Please enter a valid URL.</string>
+    <string name="check_your_internet_connection">Check your internet connection.</string>
+    <string name="unable_to_shorten_the_url">Unable to shorten the URL.</string>
+    <string name="empty_server_response">Empty server response.</string>
+    <string name="server_error">Server error.</string>
+    <string name="unexpected_error">Unexpected error.</string>
+</resources>

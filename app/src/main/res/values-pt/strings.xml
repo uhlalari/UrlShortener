@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">Encurtador de URL</string>
+    <string name="url_shortener">Encurtador de URL</string>
+    <string name="shorten">Encurtar</string>
+    <string name="url_placeholder">https://exemplo.com</string>
+    <string name="recent_urls">URLs Recentes</string>
+    <string name="clear">Limpar</string>
+    <string name="no_shortened_urls_yet">Nenhuma URL encurtada ainda.</string>
+    <string name="dismiss_error">Descartar erro</string>
+    <string name="share_link">Compartilhar link</string>
+    <string name="shortened_url">URL Encurtada</string>
+    <string name="url_copied_to_clipboard">Link copiado para a área de transferência</string>
+    <string name="url_cannot_be_empty">A URL não pode estar vazia.</string>
+    <string name="please_enter_a_valid_url">Por favor, insira uma URL válida.</string>
+    <string name="check_your_internet_connection">Verifique sua conexão com a internet.</string>
+    <string name="unable_to_shorten_the_url">Não foi possível encurtar a URL.</string>
+    <string name="empty_server_response">Resposta vazia do servidor.</string>
+    <string name="server_error">Erro do servidor.</string>
+    <string name="unexpected_error">Erro inesperado.</string>
+</resources>
