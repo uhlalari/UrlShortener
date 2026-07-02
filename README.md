@@ -84,10 +84,4 @@ Análise estática (Detekt):
 - CI/CD automatizado
 - Análise estática de código
 
-## Notas de Implementação
 
-- Dados mantidos apenas em memória conforme requisito do teste
-- Corrigido bug de parse JSON: @Json(name = "_links") no campo links da API
-- Corrigido testes: coEvery em vez de every para funções suspend
-- Separado screen em stateful/stateless para testes de UI sem Hilt
-- Adicionado Resource wrapper para error handling type-safe
