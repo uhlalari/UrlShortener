@@ -7,13 +7,13 @@ sealed interface Resource<out T> {
     ) : Resource<T>
 
     data class Error(
-        val type: ErrorType,
-        val message: String
+        val type: ErrorType
     ) : Resource<Nothing>
 }
 
 enum class ErrorType {
-    VALIDATION,
+    EMPTY_URL,
+    INVALID_URL,
     NETWORK,
     SERVER,
     UNKNOWN

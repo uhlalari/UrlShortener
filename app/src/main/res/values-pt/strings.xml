@@ -17,4 +17,5 @@
     <string name="empty_server_response">Resposta vazia do servidor.</string>
     <string name="server_error">Erro do servidor.</string>
     <string name="unexpected_error">Erro inesperado.</string>
+    <string name="request_timeout">O servidor está demorando muito para responder. Tente novamente em breve.</string>
 </resources>

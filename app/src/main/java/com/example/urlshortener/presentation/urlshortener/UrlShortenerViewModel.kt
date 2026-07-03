@@ -4,13 +4,13 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.urlshortener.R
+import com.example.urlshortener.domain.model.ErrorType
 import com.example.urlshortener.domain.model.Resource
 import com.example.urlshortener.domain.repository.UrlShortenerRepository
 import com.example.urlshortener.domain.usecase.ShortenUrlUseCase
 import com.example.urlshortener.presentation.urlshortener.UrlShortenerEvent.ShowSnackbar
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import timber.log.Timber
 import javax.inject.Inject
@@ -60,15 +59,9 @@ class UrlShortenerViewModel @Inject constructor(
 
             try {
 
-                Timber.d("Starting shorten url request")
-
-                val result = withTimeout(20_000L) {
-                    withContext(Dispatchers.IO) {
-                        shortenUrlUseCase(url)
-                    }
+                val result = withTimeout(REQUEST_TIMEOUT_MILLIS) {
+                    shortenUrlUseCase(url)
                 }
-
-                Timber.d("Shorten result: $result")
 
                 when (result) {
 
@@ -83,9 +76,7 @@ class UrlShortenerViewModel @Inject constructor(
 
                     is Resource.Error -> {
                         _state.update {
-                            it.copy(
-                                errorMessage = result.message
-                            )
+                            it.copy(errorMessage = result.type.toMessage())
                         }
                     }
                 }
@@ -95,20 +86,7 @@ class UrlShortenerViewModel @Inject constructor(
                 Timber.e("Timeout while calling server")
 
                 _state.update {
-                    it.copy(
-                        errorMessage = "O servidor está demorando para responder. Tente novamente em alguns instantes."
-                    )
-                }
-
-            } catch (exception: Exception) {
-
-                Timber.e(exception)
-
-                _state.update {
-                    it.copy(
-                        errorMessage = exception.localizedMessage
-                            ?: context.getString(R.string.unexpected_error)
-                    )
+                    it.copy(errorMessage = context.getString(R.string.request_timeout))
                 }
 
             } finally {
@@ -127,34 +105,36 @@ class UrlShortenerViewModel @Inject constructor(
     fun onLinkCopied() {
         viewModelScope.launch {
             _events.emit(
-                ShowSnackbar(
-                    context.getString(R.string.url_copied_to_clipboard)
-                )
+                ShowSnackbar(context.getString(R.string.url_copied_to_clipboard))
             )
         }
     }
 
     fun clearError() {
-        _state.update {
-            it.copy(errorMessage = null)
-        }
+        _state.update { it.copy(errorMessage = null) }
     }
 
     private fun observeRecentUrls() {
         viewModelScope.launch {
             repository.recentUrls.collect { urls ->
-                _state.update {
-                    it.copy(recentUrls = urls)
-                }
+                _state.update { it.copy(recentUrls = urls) }
             }
         }
     }
 
-    private fun updateLoading(
-        isLoading: Boolean
-    ) {
-        _state.update {
-            it.copy(isLoading = isLoading)
-        }
+    private fun updateLoading(isLoading: Boolean) {
+        _state.update { it.copy(isLoading = isLoading) }
+    }
+
+    private fun ErrorType.toMessage(): String = when (this) {
+        ErrorType.EMPTY_URL -> context.getString(R.string.url_cannot_be_empty)
+        ErrorType.INVALID_URL -> context.getString(R.string.please_enter_a_valid_url)
+        ErrorType.NETWORK -> context.getString(R.string.check_your_internet_connection)
+        ErrorType.SERVER -> context.getString(R.string.server_error)
+        ErrorType.UNKNOWN -> context.getString(R.string.unexpected_error)
+    }
+
+    private companion object {
+        const val REQUEST_TIMEOUT_MILLIS = 20_000L
     }
 }

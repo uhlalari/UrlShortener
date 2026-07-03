@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import com.example.urlshortener.R
 import androidx.compose.ui.text.input.ImeAction
@@ -42,7 +43,9 @@ fun UrlInput(
         OutlinedTextField(
             value = urlInput,
             onValueChange = onUrlChange,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .testTag("url_input_field"),
             singleLine = true,
             enabled = !isLoading,
             placeholder = {
@@ -63,7 +66,8 @@ fun UrlInput(
 
         Button(
             onClick = onShortenClick,
-            enabled = urlInput.isNotBlank() && !isLoading
+            enabled = urlInput.isNotBlank() && !isLoading,
+            modifier = Modifier.testTag("shorten_button")
         ) {
 
             if (isLoading) {

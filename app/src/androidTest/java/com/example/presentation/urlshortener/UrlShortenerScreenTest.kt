@@ -1,9 +1,12 @@
-package com.example.urlshortener.presentation.urlshortener
+package com.example.presentation.urlshortener
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
-import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performClick
@@ -20,12 +23,9 @@ class UrlShortenerScreenTest {
     val composeRule = createComposeRule()
 
     @Test
-    fun should_show_empty_state() {
-
+    fun shouldShowEmptyState() {
         composeRule.setContent {
-
             UrlShortenerTheme {
-
                 UrlShortenerContent(
                     state = UrlShortenerState(),
                     onUrlChange = {},
@@ -35,59 +35,47 @@ class UrlShortenerScreenTest {
                     onCopyClick = {},
                     onShareClick = {}
                 )
-
             }
-
         }
 
         composeRule
-            .onNodeWithText("No shortened URLs yet.")
+            .onNodeWithTag("empty_history")
             .assertIsDisplayed()
     }
 
     @Test
-    fun should_display_url_when_typing() {
-
-        var value = ""
+    fun shouldDisplayUrlWhenTyping() {
+        var urlInput by mutableStateOf("")
 
         composeRule.setContent {
-
             UrlShortenerTheme {
-
                 UrlShortenerContent(
-                    state = UrlShortenerState(
-                        urlInput = value
-                    ),
-                    onUrlChange = {
-                        value = it
-                    },
+                    state = UrlShortenerState(urlInput = urlInput),
+                    onUrlChange = { urlInput = it },
                     onShortenClick = {},
                     onClearHistoryClick = {},
                     onDismissError = {},
                     onCopyClick = {},
                     onShareClick = {}
                 )
-
             }
-
         }
 
         composeRule
-            .onNode(hasSetTextAction())
+            .onNodeWithTag("url_input_field")
             .performTextInput("https://google.com")
+
+        composeRule
+            .onNodeWithTag("url_input_field")
+            .assertIsDisplayed()
     }
 
     @Test
-    fun should_show_error_message() {
-
+    fun shouldShowErrorMessage() {
         composeRule.setContent {
-
             UrlShortenerTheme {
-
                 UrlShortenerContent(
-                    state = UrlShortenerState(
-                        errorMessage = "Invalid URL"
-                    ),
+                    state = UrlShortenerState(errorMessage = "Invalid URL"),
                     onUrlChange = {},
                     onShortenClick = {},
                     onClearHistoryClick = {},
@@ -95,9 +83,7 @@ class UrlShortenerScreenTest {
                     onCopyClick = {},
                     onShareClick = {}
                 )
-
             }
-
         }
 
         composeRule
@@ -106,12 +92,9 @@ class UrlShortenerScreenTest {
     }
 
     @Test
-    fun should_show_history() {
-
+    fun shouldShowHistory() {
         composeRule.setContent {
-
             UrlShortenerTheme {
-
                 UrlShortenerContent(
                     state = UrlShortenerState(
                         recentUrls = listOf(
@@ -129,9 +112,7 @@ class UrlShortenerScreenTest {
                     onCopyClick = {},
                     onShareClick = {}
                 )
-
             }
-
         }
 
         composeRule
@@ -144,12 +125,9 @@ class UrlShortenerScreenTest {
     }
 
     @Test
-    fun should_show_clear_button_when_history_exists() {
-
+    fun shouldShowClearButtonWhenHistoryExists() {
         composeRule.setContent {
-
             UrlShortenerTheme {
-
                 UrlShortenerContent(
                     state = UrlShortenerState(
                         recentUrls = listOf(
@@ -167,13 +145,11 @@ class UrlShortenerScreenTest {
                     onCopyClick = {},
                     onShareClick = {}
                 )
-
             }
-
         }
 
         composeRule
-            .onNodeWithText("Clear")
+            .onNodeWithTag("clear_history_button")
             .assertIsDisplayed()
             .assertIsEnabled()
             .performClick()

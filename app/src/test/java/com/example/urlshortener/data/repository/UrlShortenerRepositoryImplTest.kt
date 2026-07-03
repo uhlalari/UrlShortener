@@ -1,11 +1,13 @@
 package com.example.urlshortener.data.repository
 
+import com.example.urlshortener.data.persistence.RecentUrlsPersistence
 import com.example.urlshortener.data.remote.UrlShortenerApi
 import com.example.urlshortener.data.remote.dto.LinksDto
 import com.example.urlshortener.data.remote.dto.ShortenUrlResponse
 import com.example.urlshortener.domain.model.ErrorType
 import com.example.urlshortener.domain.model.Resource
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -21,20 +23,19 @@ import java.io.IOException
 class UrlShortenerRepositoryImplTest {
 
     private lateinit var api: UrlShortenerApi
-
+    private lateinit var persistence: RecentUrlsPersistence
     private lateinit var repository: UrlShortenerRepositoryImpl
 
     @Before
     fun setup() {
-
         api = mockk()
-
-        repository = UrlShortenerRepositoryImpl(api)
+        persistence = mockk()
+        every { persistence.loadUrls() } returns emptyList()
+        repository = UrlShortenerRepositoryImpl(api, persistence)
     }
 
     @Test
-    fun `should shorten url successfully`() = runTest {
-
+    fun shouldShortenUrlSuccessfully() = runTest {
         val response = ShortenUrlResponse(
             alias = "abc123",
             links = LinksDto(
@@ -46,76 +47,45 @@ class UrlShortenerRepositoryImplTest {
         coEvery {
             api.shortenUrl(any())
         } returns Response.success(response)
+        coEvery { persistence.saveUrls(any()) } returns Unit
 
-        val result =
-            repository.shortenUrl("https://google.com")
+        val result = repository.shortenUrl("https://google.com")
 
         assertTrue(result is Resource.Success)
 
         val success = result as Resource.Success
-
-        assertEquals(
-            "abc123",
-            success.data.alias
-        )
-
-        assertEquals(
-            1,
-            repository.recentUrls.first().size
-        )
+        assertEquals("abc123", success.data.alias)
+        assertEquals(1, repository.recentUrls.first().size)
     }
 
     @Test
-    fun `should return server error`() = runTest {
-
-        val errorBody =
-            "".toResponseBody(
-                "application/json".toMediaType()
-            )
+    fun shouldReturnServerError() = runTest {
+        val errorBody = "".toResponseBody("application/json".toMediaType())
 
         coEvery {
             api.shortenUrl(any())
-        } returns Response.error(
-            500,
-            errorBody
-        )
+        } returns Response.error(500, errorBody)
 
-        val result =
-            repository.shortenUrl("https://google.com")
+        val result = repository.shortenUrl("https://google.com")
 
         assertTrue(result is Resource.Error)
-
-        val error = result as Resource.Error
-
-        assertEquals(
-            ErrorType.SERVER,
-            error.type
-        )
+        assertEquals(ErrorType.SERVER, (result as Resource.Error).type)
     }
 
     @Test
-    fun `should return network error`() = runTest {
-
+    fun shouldReturnNetworkError() = runTest {
         coEvery {
             api.shortenUrl(any())
         } throws IOException()
 
-        val result =
-            repository.shortenUrl("https://google.com")
+        val result = repository.shortenUrl("https://google.com")
 
         assertTrue(result is Resource.Error)
-
-        val error = result as Resource.Error
-
-        assertEquals(
-            ErrorType.NETWORK,
-            error.type
-        )
+        assertEquals(ErrorType.NETWORK, (result as Resource.Error).type)
     }
 
     @Test
-    fun `should clear history`() = runTest {
-
+    fun shouldClearHistory() = runTest {
         val response = ShortenUrlResponse(
             alias = "abc123",
             links = LinksDto(
@@ -127,14 +97,13 @@ class UrlShortenerRepositoryImplTest {
         coEvery {
             api.shortenUrl(any())
         } returns Response.success(response)
+        coEvery { persistence.saveUrls(any()) } returns Unit
+        coEvery { persistence.clearUrls() } returns Unit
 
         repository.shortenUrl("https://google.com")
-
         repository.clearHistory()
 
-        val history =
-            repository.recentUrls.first()
-
+        val history = repository.recentUrls.first()
         assertTrue(history.isEmpty())
     }
 }

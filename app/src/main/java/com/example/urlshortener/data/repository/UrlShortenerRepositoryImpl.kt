@@ -1,7 +1,5 @@
 package com.example.urlshortener.data.repository
 
-import android.content.Context
-import com.example.urlshortener.R
 import com.example.urlshortener.data.mapper.toDomain
 import com.example.urlshortener.data.persistence.RecentUrlsPersistence
 import com.example.urlshortener.data.remote.UrlShortenerApi
@@ -10,7 +8,6 @@ import com.example.urlshortener.domain.model.ErrorType
 import com.example.urlshortener.domain.model.Resource
 import com.example.urlshortener.domain.model.ShortenedUrl
 import com.example.urlshortener.domain.repository.UrlShortenerRepository
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,7 +21,6 @@ import javax.inject.Singleton
 @Singleton
 class UrlShortenerRepositoryImpl @Inject constructor(
     private val api: UrlShortenerApi,
-    @ApplicationContext private val context: Context,
     private val persistence: RecentUrlsPersistence
 ) : UrlShortenerRepository {
 
@@ -40,30 +36,13 @@ class UrlShortenerRepositoryImpl @Inject constructor(
 
         return try {
 
-            val response = api.shortenUrl(
-                ShortenUrlRequest(url)
-            )
-
-            if (!response.isSuccessful) {
-
-                Timber.e("API returned ${response.code()}")
-
-                return Resource.Error(
-                    type = ErrorType.SERVER,
-                    message = context.getString(R.string.unable_to_shorten_the_url)
-                )
-            }
+            val response = api.shortenUrl(ShortenUrlRequest(url))
 
             val body = response.body()
 
-            if (body == null) {
-
-                Timber.e("Empty response body")
-
-                return Resource.Error(
-                    type = ErrorType.SERVER,
-                    message = context.getString(R.string.empty_server_response)
-                )
+            if (!response.isSuccessful || body == null) {
+                Timber.e("API returned ${response.code()}")
+                return Resource.Error(ErrorType.SERVER)
             }
 
             val shortenedUrl = body.toDomain()
@@ -79,31 +58,14 @@ class UrlShortenerRepositoryImpl @Inject constructor(
             Resource.Success(shortenedUrl)
 
         } catch (exception: IOException) {
-
             Timber.e(exception)
-
-            Resource.Error(
-                type = ErrorType.NETWORK,
-                message = context.getString(R.string.check_your_internet_connection)
-            )
-
+            Resource.Error(ErrorType.NETWORK)
         } catch (exception: HttpException) {
-
             Timber.e(exception)
-
-            Resource.Error(
-                type = ErrorType.SERVER,
-                message = context.getString(R.string.server_error)
-            )
-
+            Resource.Error(ErrorType.SERVER)
         } catch (exception: Exception) {
-
             Timber.e(exception)
-
-            Resource.Error(
-                type = ErrorType.UNKNOWN,
-                message = context.getString(R.string.unexpected_error)
-            )
+            Resource.Error(ErrorType.UNKNOWN)
         }
     }
 

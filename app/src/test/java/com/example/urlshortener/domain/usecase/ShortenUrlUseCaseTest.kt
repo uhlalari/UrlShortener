@@ -1,14 +1,11 @@
 package com.example.urlshortener.domain.usecase
 
-import android.content.Context
-import com.example.urlshortener.R
 import com.example.urlshortener.domain.model.ErrorType
 import com.example.urlshortener.domain.model.Resource
 import com.example.urlshortener.domain.model.ShortenedUrl
 import com.example.urlshortener.domain.repository.UrlShortenerRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -19,21 +16,16 @@ import org.junit.Test
 class ShortenUrlUseCaseTest {
 
     private lateinit var repository: UrlShortenerRepository
-    private lateinit var context: Context
     private lateinit var useCase: ShortenUrlUseCase
 
     @Before
     fun setup() {
         repository = mockk()
-        context = mockk()
-        every { context.getString(R.string.url_cannot_be_empty) } returns "URL cannot be empty."
-        every { context.getString(R.string.please_enter_a_valid_url) } returns "Please enter a valid URL."
-        useCase = ShortenUrlUseCase(repository, context)
+        useCase = ShortenUrlUseCase(repository)
     }
 
     @Test
-    fun `should shorten valid url`() = runTest {
-
+    fun shouldShortenValidUrl() = runTest {
         val expected = ShortenedUrl(
             alias = "abc123",
             originalUrl = "https://google.com",
@@ -55,8 +47,7 @@ class ShortenUrlUseCaseTest {
     }
 
     @Test
-    fun `should trim spaces`() = runTest {
-
+    fun shouldTrimSpaces() = runTest {
         val expected = ShortenedUrl(
             alias = "abc123",
             originalUrl = "https://google.com",
@@ -75,8 +66,7 @@ class ShortenUrlUseCaseTest {
     }
 
     @Test
-    fun `should add https when protocol is missing`() = runTest {
-
+    fun shouldAddHttpsWhenProtocolIsMissing() = runTest {
         val expected = ShortenedUrl(
             alias = "abc123",
             originalUrl = "https://google.com",
@@ -95,34 +85,23 @@ class ShortenUrlUseCaseTest {
     }
 
     @Test
-    fun `should return validation error when url is blank`() = runTest {
-
+    fun shouldReturnEmptyUrlErrorWhenUrlIsBlank() = runTest {
         val result = useCase("")
 
         assertTrue(result is Resource.Error)
-
-        val error = result as Resource.Error
-
-        assertEquals(ErrorType.VALIDATION, error.type)
-        assertEquals("URL cannot be empty.", error.message)
+        assertEquals(ErrorType.EMPTY_URL, (result as Resource.Error).type)
     }
 
     @Test
-    fun `should return validation error when url is invalid`() = runTest {
-
+    fun shouldReturnInvalidUrlErrorWhenUrlIsInvalid() = runTest {
         val result = useCase("abc")
 
         assertTrue(result is Resource.Error)
-
-        val error = result as Resource.Error
-
-        assertEquals(ErrorType.VALIDATION, error.type)
-        assertEquals("Please enter a valid URL.", error.message)
+        assertEquals(ErrorType.INVALID_URL, (result as Resource.Error).type)
     }
 
     @Test
-    fun `should accept url with query parameters`() = runTest {
-
+    fun shouldAcceptUrlWithQueryParameters() = runTest {
         val expected = ShortenedUrl(
             alias = "abc123",
             originalUrl = "https://instagram.com/reel/abc?igsh=test",
@@ -144,22 +123,14 @@ class ShortenUrlUseCaseTest {
     }
 
     @Test
-    fun `should propagate repository error`() = runTest {
-
+    fun shouldPropagateRepositoryError() = runTest {
         coEvery {
             repository.shortenUrl(any())
-        } returns Resource.Error(
-            ErrorType.NETWORK,
-            "No internet connection"
-        )
+        } returns Resource.Error(ErrorType.NETWORK)
 
         val result = useCase("https://google.com")
 
         assertTrue(result is Resource.Error)
-
-        val error = result as Resource.Error
-
-        assertEquals(ErrorType.NETWORK, error.type)
-        assertEquals("No internet connection", error.message)
+        assertEquals(ErrorType.NETWORK, (result as Resource.Error).type)
     }
 }

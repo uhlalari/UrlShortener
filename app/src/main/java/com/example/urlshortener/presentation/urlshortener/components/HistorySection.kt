@@ -16,6 +16,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.testTag
 import com.example.urlshortener.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -45,7 +46,8 @@ fun HistorySection(
 
             if (recentUrls.isNotEmpty()) {
                 TextButton(
-                    onClick = onClearHistory
+                    onClick = onClearHistory,
+                    modifier = Modifier.testTag("clear_history_button")
                 ) {
                     Text(stringResource(R.string.clear))
                 }
@@ -91,7 +93,9 @@ fun HistorySection(
 private fun EmptyHistory() {
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("empty_history"),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         )
